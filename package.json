@@ -1,0 +1,29 @@
+{
+  "name": "golf-optimizer",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "lint": "eslint . --fix"
+  },
+  "dependencies": {
+    "glpk.js": "^4.0.2",
+    "papaparse": "^5.5.2",
+    "seedrandom": "^3.0.5",
+    "vue": "^3.5.13",
+    "vue3-easy-data-table": "^1.5.47",
+    "vue3-tabs-component": "^1.3.7"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.18.0",
+    "@vitejs/plugin-vue": "^5.2.1",
+    "eslint": "^9.18.0",
+    "eslint-plugin-vue": "^9.32.0",
+    "vite": "^6.0.11",
+    "vite-plugin-gh-pages": "^1.0.1",
+    "vite-plugin-vue-devtools": "^7.7.1"
+  }
+}

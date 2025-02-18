@@ -1,0 +1,94 @@
+<script setup>
+import { ref } from 'vue';
+import UploadPlayerData from './components/UploadPlayerData.vue'
+import PlayerDataTable from './components/PlayerDataTable.vue';
+import OptimizeLineupsButton from './components/OptimizeLineupsButton.vue';
+import GeneratedLineups from './components/GeneratedLineups.vue';
+import { Tabs, Tab } from 'vue3-tabs-component';
+
+const playerData = ref([]);
+const curatedPlayerData = ref([]);
+const lineups = ref([]);
+const tabs = ref(null)
+
+const handleFileUploaded = (data) => {
+  playerData.value = data;
+};
+
+const updatedCuratedPlayerData = (data) => {
+  curatedPlayerData.value = data;
+}
+
+const updateLineups = (newLineups) => {
+  lineups.value = newLineups.map(
+    lineup => {
+
+      const p1 = curatedPlayerData.value.find(player => player.ID === lineup.lineup[0]);
+      const p2 = curatedPlayerData.value.find(player => player.ID === lineup.lineup[1]);
+      const p3 = curatedPlayerData.value.find(player => player.ID === lineup.lineup[2]);
+      const p4 = curatedPlayerData.value.find(player => player.ID === lineup.lineup[3]);
+      const p5 = curatedPlayerData.value.find(player => player.ID === lineup.lineup[4]);
+      const p6 = curatedPlayerData.value.find(player => player.ID === lineup.lineup[5]);
+
+      return {
+        Player1: p1.NameID,
+        Player2: p2.NameID,
+        Player3: p3.NameID,
+        Player4: p4.NameID,
+        Player5: p5.NameID,
+        Player6: p6.NameID,
+        totalSalary: parseInt(p1.Salary) + parseInt(p2.Salary) + parseInt(p3.Salary) + parseInt(p4.Salary) + parseInt(p5.Salary) + parseInt(p6.Salary),
+        totalExpectedFantasyPoints: Math.round(parseFloat(p1.ExpectedFantasyPoints) + parseFloat(p2.ExpectedFantasyPoints) + parseFloat(p3.ExpectedFantasyPoints) + parseFloat(p4.ExpectedFantasyPoints) + parseFloat(p5.ExpectedFantasyPoints) + parseFloat(p6.ExpectedFantasyPoints)),
+      };
+    }
+  ).sort((a, b) => b.totalExpectedFantasyPoints - a.totalExpectedFantasyPoints);
+}
+
+const gotoUploadPlayerData = () => {
+  tabs.value.selectTab('#player-data-tab')
+}
+
+const exportLineups = () =>{
+  
+  const csvContent = "data:text/csv;charset=utf-8," + lineups.value.map(lineup => {
+    return `${lineup.Player1},${lineup.Player2},${lineup.Player3},${lineup.Player4},${lineup.Player5},${lineup.Player6},${lineup.totalSalary},${lineup.totalExpectedFantasyPoints}`
+  }).join('\n');
+
+  const encodedUri = encodeURI(csvContent);
+  const link = document.createElement("a");
+  link.setAttribute("href", encodedUri);
+  link.setAttribute("download", "lineups.csv");
+  document.body.appendChild(link); // Required for FF
+
+  link.click();
+}
+
+</script>
+
+<template>
+  <div>
+    <Tabs ref="tabs">
+      <Tab id='player-data-tab' name="Upload Player Data" :selected="true">
+        <UploadPlayerData class="upload-player-data" @file-uploaded="handleFileUploaded" />
+        <PlayerDataTable 
+          :data="playerData" 
+          @updatePlayerData="updatedCuratedPlayerData"/>
+      </Tab>
+      <Tab id='generate-lineups-tab' name="Generate Lineups">
+        <OptimizeLineupsButton 
+          :playerData="curatedPlayerData" 
+          @updateLineups="updateLineups"
+          @gotoUploadPlayerData="gotoUploadPlayerData" 
+          @exportLineups="exportLineups"
+          />
+        <GeneratedLineups :lineups="lineups" />
+      </Tab>
+    </Tabs>
+  </div>
+</template>
+
+<style scoped>
+.upload-player-data{
+  margin-bottom: 5px;
+}
+</style>
