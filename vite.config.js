@@ -10,6 +10,7 @@ export default defineConfig({
     vue(),
     vueDevTools(),
   ],
+  base: '/dfs-golf-optimizer/',
   resolve: {
     alias: {
       '@': fileURLToPath(new URL('./src', import.meta.url))
