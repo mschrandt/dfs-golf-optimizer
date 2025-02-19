@@ -146,13 +146,12 @@ async function generateSolutions(numLineups, playerData, minUniqueness, maxExpos
     .filter((res) => res[1] === 1)
     .map((res) => res[0]);
 
-  solutions.push({
-    score: res.result.z,
-    lineup: bestLineup
-  });
-
-  if (numLineups == 1) {
-    return solutions;
+  if(salaryCheck(bestLineup, playerData))
+  {
+    solutions.push({
+      score: res.result.z,
+      lineup: bestLineup
+    });
   }
 
   // Generate lineups one at a time
@@ -160,7 +159,7 @@ async function generateSolutions(numLineups, playerData, minUniqueness, maxExpos
   var iter = 0;
 
   while (solutions.length < numLineups && iter < MAX_ITER) {
-    const overexposedPlayers = calcOverexposure(solutions, numLineups, maxExposure);
+    const overexposedPlayers = calcOverexposure(solutions, numLineups, maxExposure, playerData);
     iter++;
     const nextExcludeLists = combinations(lastLineup, minUniqueness).filter((excludeList) => {
       for (var lockedPlayer of lockedPlayers) {
@@ -181,16 +180,19 @@ async function generateSolutions(numLineups, playerData, minUniqueness, maxExpos
       filteredPlayers
     ).then((res) => {
       if (res.result.status === glpk.GLP_OPT) {
-        solutions.push({
-          score: res.result.z,
-          lineup: Object.entries(res.result.vars)
-            .filter((res) => res[1] === 1)
-            .map((res) => res[0])
-        });
+        var lineup = Object.entries(res.result.vars)
+                .filter((res) => res[1] === 1)
+                .map((res) => res[0]);
+        if(salaryCheck(lineup, playerData))
+        {
+          solutions.push({
+            score: res.result.z,
+            lineup: lineup
+          });
+        }
+        lastLineup = lineup;
       }
-      lastLineup = Object.entries(res.result.vars)
-        .filter((res) => res[1] === 1)
-        .map((res) => res[0])
+      
     });
 
     solutions = unique(solutions);
@@ -201,9 +203,9 @@ async function generateSolutions(numLineups, playerData, minUniqueness, maxExpos
   return uniqueSolutions;
 }
 
-const calcOverexposure = (solutions, numLineups, maxExposure) => {
+const calcOverexposure = (solutions, numLineups, maxExposure, playerData) => {
   return Object.entries(calcExposure(solutions, numLineups))
-    .filter(([player, exposure]) => exposure > maxExposure)
+    .filter(([player, exposure]) => exposure > maxExposure || exposure > parseFloat(playerData.find((p) => p.ID === player).MaxExposure))
     .map(([player, count]) => player);
 }
 
@@ -224,6 +226,15 @@ const calcExposure = (solutions, numLineups) => {
   });
 
   return exposureDict;
+}
+
+const salaryCheck = (lineup, playerData) => {
+
+  var salaryUse = lineup.map((player) => {
+    return parseInt(playerData.find((p) => p.ID === player).Salary);
+  });
+  var totalSalaryUse = salaryUse.reduce((p,c) => p+c, 0);
+  return totalSalaryUse <= 50000;
 }
 
 function combinations(lineup, minUniqueness = 1) {

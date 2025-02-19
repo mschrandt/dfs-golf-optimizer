@@ -53,7 +53,7 @@ const gotoUploadPlayerData = () => {
 const exportLineups = () =>{
   
   const csvContent = "data:text/csv;charset=utf-8," + lineups.value.map(lineup => {
-    return `${lineup.Player1},${lineup.Player2},${lineup.Player3},${lineup.Player4},${lineup.Player5},${lineup.Player6},${lineup.totalSalary},${lineup.totalExpectedFantasyPoints}`
+    return `${lineup.Player1.name},${lineup.Player2.name},${lineup.Player3.name},${lineup.Player4.name},${lineup.Player5.name},${lineup.Player6.name},${lineup.totalSalary},${lineup.totalExpectedFantasyPoints}`
   }).join('\n');
 
   const encodedUri = encodeURI(csvContent);
