@@ -14,6 +14,14 @@
             max="5" 
             v-model="minUniqueness"/>
         <br />
+        <label>Max exposure: {{ (maxExposure * 100).toFixed(0) }}% </label>
+        <br />
+        <input type="range" 
+            min="0.05" 
+            max="1"
+            step="0.05"
+            v-model="maxExposure"/>
+        <br />
 
         <div style="display: flex; width: 100%;">
             <button class="action-button" @click="optimizeLineups">Optimize Lineups</button>
@@ -29,6 +37,7 @@ import { generateSolutions } from '../lib/solver';
 
 const numLineups = ref(10);
 const minUniqueness = ref(3);
+const maxExposure = ref(0.8);
 const lineupsGenerated = ref(false);
 
 const props = defineProps({
@@ -41,6 +50,10 @@ const props = defineProps({
 const emit = defineEmits(['updateLineups','gotoUploadPlayerData','exportLineups']);
 
 const optimizeLineups = async () => {
+
+    lineupsGenerated.value = false;
+    emit('updateLineups', []);
+    
     if (props.playerData.length === 0) {
         alert('Missing player data - upload a DraftKings player pool CSV file.');
         emit('gotoUploadPlayerData');
@@ -51,7 +64,8 @@ const optimizeLineups = async () => {
         var res = await generateSolutions(
             numLineups.value,
             props.playerData,
-            minUniqueness.value
+            minUniqueness.value,
+            maxExposure.value
         );
     } catch (error) {
         alert(`Error optimizing lineups: ${error}`);

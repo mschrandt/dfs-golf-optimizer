@@ -5,6 +5,7 @@ import PlayerDataTable from './components/PlayerDataTable.vue';
 import OptimizeLineupsButton from './components/OptimizeLineupsButton.vue';
 import GeneratedLineups from './components/GeneratedLineups.vue';
 import { Tabs, Tab } from 'vue3-tabs-component';
+import { calcExposure } from './lib/solver';
 
 const playerData = ref([]);
 const curatedPlayerData = ref([]);
@@ -20,6 +21,7 @@ const updatedCuratedPlayerData = (data) => {
 }
 
 const updateLineups = (newLineups) => {
+  const exposure = calcExposure(newLineups, newLineups.length);
   lineups.value = newLineups.map(
     lineup => {
 
@@ -31,12 +33,12 @@ const updateLineups = (newLineups) => {
       const p6 = curatedPlayerData.value.find(player => player.ID === lineup.lineup[5]);
 
       return {
-        Player1: p1.NameID,
-        Player2: p2.NameID,
-        Player3: p3.NameID,
-        Player4: p4.NameID,
-        Player5: p5.NameID,
-        Player6: p6.NameID,
+        Player1: { name: p1.NameID, exposure: exposure[p1.ID] },
+        Player2: { name: p2.NameID, exposure: exposure[p2.ID] },
+        Player3: { name: p3.NameID, exposure: exposure[p3.ID] },
+        Player4: { name: p4.NameID, exposure: exposure[p4.ID] },
+        Player5: { name: p5.NameID, exposure: exposure[p5.ID] },
+        Player6: { name: p6.NameID, exposure: exposure[p6.ID] },
         totalSalary: parseInt(p1.Salary) + parseInt(p2.Salary) + parseInt(p3.Salary) + parseInt(p4.Salary) + parseInt(p5.Salary) + parseInt(p6.Salary),
         totalExpectedFantasyPoints: Math.round(parseFloat(p1.ExpectedFantasyPoints) + parseFloat(p2.ExpectedFantasyPoints) + parseFloat(p3.ExpectedFantasyPoints) + parseFloat(p4.ExpectedFantasyPoints) + parseFloat(p5.ExpectedFantasyPoints) + parseFloat(p6.ExpectedFantasyPoints)),
       };

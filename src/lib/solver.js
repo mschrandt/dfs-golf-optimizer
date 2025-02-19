@@ -1,4 +1,10 @@
 import GLPK from "glpk.js";
+import seedrandom from "seedrandom";
+seedrandom("hello." , { global: true });
+
+const MAX_ITER = 1000;
+
+
 
 function playerFilter(excludeList = []) {
   return (player) => player.FPPG !== "" && !excludeList.includes(player.ID);
@@ -115,10 +121,10 @@ function solve(
   return glpk.solve(equation, options);
 }
 
-async function generateSolutions(numLineups, playerData, minUniqueness) {
+async function generateSolutions(numLineups, playerData, minUniqueness, maxExposure) {
 
   const glpk = await GLPK();
-  const solutions = [];
+  var solutions = [];
   
   const removedPlayers = playerData.filter((player) => player.EliminatePlayer).map((player) => player.ID) ?? [];
 
@@ -151,7 +157,11 @@ async function generateSolutions(numLineups, playerData, minUniqueness) {
 
   // Generate lineups one at a time
   var lastLineup = bestLineup;
-  for (var i = 0; i < numLineups * 2; i++) {
+  var iter = 0;
+
+  while (solutions.length < numLineups && iter < MAX_ITER) {
+    const overexposedPlayers = calcOverexposure(solutions, numLineups, maxExposure);
+    iter++;
     const nextExcludeLists = combinations(lastLineup, minUniqueness).filter((excludeList) => {
       for (var lockedPlayer of lockedPlayers) {
         if (excludeList.includes(lockedPlayer)) return false;
@@ -159,7 +169,8 @@ async function generateSolutions(numLineups, playerData, minUniqueness) {
       return true;
     });
     const nextExcludeList = nextExcludeLists[Math.round(Math.random() * nextExcludeLists.length)];
-    filteredPlayers = playerData.filter(playerFilter(removedPlayers.concat(nextExcludeList)));
+    filteredPlayers = playerData.filter(playerFilter(removedPlayers.concat(nextExcludeList).concat(overexposedPlayers)));
+
     await solve(
       glpk,
       buildPlayerIds(filteredPlayers),
@@ -181,10 +192,38 @@ async function generateSolutions(numLineups, playerData, minUniqueness) {
         .filter((res) => res[1] === 1)
         .map((res) => res[0])
     });
+
+    solutions = unique(solutions);
   }
+
   var uniqueSolutions = unique(solutions).slice(0, numLineups);
   uniqueSolutions.sort((a, b) => b.score - a.score);
   return uniqueSolutions;
+}
+
+const calcOverexposure = (solutions, numLineups, maxExposure) => {
+  return Object.entries(calcExposure(solutions, numLineups))
+    .filter(([player, exposure]) => exposure > maxExposure)
+    .map(([player, count]) => player);
+}
+
+const calcExposure = (solutions, numLineups) => {
+  const exposureDict = {};
+  solutions.map((sln) => {
+    sln.lineup.map((player) => {
+      if (exposureDict[player]) {
+        exposureDict[player] += 1;
+      } else {
+        exposureDict[player] = 1;
+      }
+    })
+  });
+
+  Object.keys(exposureDict).forEach((player) => {
+    exposureDict[player] = exposureDict[player] / numLineups;
+  });
+
+  return exposureDict;
 }
 
 function combinations(lineup, minUniqueness = 1) {
@@ -282,4 +321,4 @@ function unique(array) {
   return uniqueSolutions;
 }
 
-export { generateSolutions };
+export { generateSolutions, calcExposure };
