@@ -81,6 +81,12 @@
             </div>
         </template>
 
+        <template #item-GeneratedExposure="item">
+            <div>
+                {{  getExposure(item.ID) }}
+            </div>
+        </template>
+
       </EasyDataTable>
     </div>
   </template>
@@ -95,6 +101,10 @@ const props = defineProps({
         type: Array,
         required: true,
     },
+    generatedExposures: {
+        type: Object,
+        default: {}
+    }
 });
 
 const items = ref([]);
@@ -107,11 +117,18 @@ const headers = ref([
     { text: 'Expected Fantasy Points', value: 'ExpectedFantasyPoints', sortable: true },
     { text: 'Lock Player', value: 'LockPlayer', sortable: true },
     { text: 'Eliminate Player', value: 'EliminatePlayer', sortable: true },
-    { text: 'Boost Player', value: 'PlayerBoost', sortable: true },
-    { text: 'Max Exposure', value: 'MaxExposure', sortable: true },
+    { text: 'Boost Player', value: 'PlayerBoost' },
+    { text: 'Max Exposure', value: 'MaxExposure' },
+    { text: 'Generated Exposure', value: 'GeneratedExposure'},
 ]);
 
 const emit = defineEmits(['updatePlayerData']);
+
+const getExposure = (playerId) => {
+    if (!props.generatedExposures || !props.generatedExposures[playerId]) return '-';
+
+    return (props.generatedExposures[playerId] * 100).toFixed(0) + '%';
+};
 
 watch(() => props.data, (newData) => {
     items.value = newData.map(row => ({

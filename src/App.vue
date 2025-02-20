@@ -10,7 +10,8 @@ import { calcExposure } from './lib/solver';
 const playerData = ref([]);
 const curatedPlayerData = ref([]);
 const lineups = ref([]);
-const tabs = ref(null)
+const tabs = ref(null);
+const generatedExposures = ref({});
 
 const handleFileUploaded = (data) => {
   playerData.value = data;
@@ -21,7 +22,7 @@ const updatedCuratedPlayerData = (data) => {
 }
 
 const updateLineups = (newLineups) => {
-  const exposure = calcExposure(newLineups, newLineups.length);
+  generatedExposures.value = calcExposure(newLineups, newLineups.length);
   lineups.value = newLineups.map(
     lineup => {
 
@@ -33,12 +34,12 @@ const updateLineups = (newLineups) => {
       const p6 = curatedPlayerData.value.find(player => player.ID === lineup.lineup[5]);
 
       return {
-        Player1: { name: p1.NameID, exposure: exposure[p1.ID] },
-        Player2: { name: p2.NameID, exposure: exposure[p2.ID] },
-        Player3: { name: p3.NameID, exposure: exposure[p3.ID] },
-        Player4: { name: p4.NameID, exposure: exposure[p4.ID] },
-        Player5: { name: p5.NameID, exposure: exposure[p5.ID] },
-        Player6: { name: p6.NameID, exposure: exposure[p6.ID] },
+        Player1: { name: p1.NameID, exposure: generatedExposures.value[p1.ID] },
+        Player2: { name: p2.NameID, exposure: generatedExposures.value[p2.ID] },
+        Player3: { name: p3.NameID, exposure: generatedExposures.value[p3.ID] },
+        Player4: { name: p4.NameID, exposure: generatedExposures.value[p4.ID] },
+        Player5: { name: p5.NameID, exposure: generatedExposures.value[p5.ID] },
+        Player6: { name: p6.NameID, exposure: generatedExposures.value[p6.ID] },
         totalSalary: parseInt(p1.Salary) + parseInt(p2.Salary) + parseInt(p3.Salary) + parseInt(p4.Salary) + parseInt(p5.Salary) + parseInt(p6.Salary),
         totalExpectedFantasyPoints: Math.round(parseFloat(p1.ExpectedFantasyPoints) + parseFloat(p2.ExpectedFantasyPoints) + parseFloat(p3.ExpectedFantasyPoints) + parseFloat(p4.ExpectedFantasyPoints) + parseFloat(p5.ExpectedFantasyPoints) + parseFloat(p6.ExpectedFantasyPoints)),
       };
@@ -74,6 +75,7 @@ const exportLineups = () =>{
         <UploadPlayerData class="upload-player-data" @file-uploaded="handleFileUploaded" />
         <PlayerDataTable 
           :data="playerData" 
+          :generatedExposures="generatedExposures"
           @updatePlayerData="updatedCuratedPlayerData"/>
       </Tab>
       <Tab id='generate-lineups-tab' name="Generate Lineups">
