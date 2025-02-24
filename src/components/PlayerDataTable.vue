@@ -37,19 +37,18 @@
             <div>
                 <input
                     type="range"
-                    min="-10"
-                    max="10"
+                    min="-20"
+                    max="20"
                     v-model="item.PlayerBoost"
                     @input="updatePlayerData(item)"
                     list="steplist"
                 />
                 <datalist id="steplist">
-                    <option>-10</option>
-
-                    <option>0</option>
-
-
-                    <option>10</option>
+                    <option value="-20" label="-20"></option>
+                    <option value="-10" l></option>
+                    <option value="0" label="0"></option>
+                    <option value="10" ></option>
+                    <option value="20" label="20"></option>
                 </datalist>
             </div>
         </template>
@@ -187,5 +186,18 @@ const updateExposure = (event, item) => {
         border: 1px solid #b2b2b2;
         background-color: #efefef;
     }
+}
+
+datalist {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+}
+
+datalist option {
+    text-align: center;
+    flex: 1;
+    position: relative;
+
 }
 </style>
