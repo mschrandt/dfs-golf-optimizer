@@ -7,6 +7,8 @@
             min="1"
             max="250"/>
         <br />
+        <br />
+        <!--
         <label>Minimum unique players per lineup: {{ minUniqueness }} </label>
         <br />
         <input type="range" 
@@ -22,7 +24,8 @@
             step="0.05"
             v-model="maxExposure"/>
         <br />
-
+        -->
+        
         <div style="display: flex; width: 100%;">
             <button class="action-button" @click="optimizeLineups">Optimize Lineups</button>
             <button v-if="lineupsGenerated" class="action-button" @click="exportClicked">Export</button>
@@ -36,8 +39,8 @@ import { ref, defineEmits } from 'vue';
 import { generateSolutions } from '../lib/solver';
 
 const numLineups = ref(10);
-const minUniqueness = ref(3);
-const maxExposure = ref(0.8);
+const minUniqueness = ref(1);
+const maxExposure = ref(1);
 const lineupsGenerated = ref(false);
 
 const props = defineProps({
@@ -52,8 +55,8 @@ const emit = defineEmits(['updateLineups','gotoUploadPlayerData','exportLineups'
 const optimizeLineups = async () => {
 
     lineupsGenerated.value = false;
-    emit('updateLineups', []);
-    
+    emit('updateLineups', {loading:true, data:[]});
+
     if (props.playerData.length === 0) {
         alert('Missing player data - upload a DraftKings player pool CSV file.');
         emit('gotoUploadPlayerData');
@@ -72,7 +75,7 @@ const optimizeLineups = async () => {
     }
 
     lineupsGenerated.value = true;
-    emit('updateLineups', res);
+    emit('updateLineups', {loading:false, data:res});
 };
 
 const exportClicked = () => {

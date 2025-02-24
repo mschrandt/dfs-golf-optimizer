@@ -12,6 +12,7 @@ const curatedPlayerData = ref([]);
 const lineups = ref([]);
 const tabs = ref(null);
 const generatedExposures = ref({});
+const loading = ref(false);
 
 const handleFileUploaded = (data) => {
   playerData.value = data;
@@ -21,7 +22,10 @@ const updatedCuratedPlayerData = (data) => {
   curatedPlayerData.value = data;
 }
 
-const updateLineups = (newLineups) => {
+const updateLineups = (updateLineups) => {
+  loading.value = updateLineups.loading;
+  const newLineups = updateLineups.data;
+  
   generatedExposures.value = calcExposure(newLineups, newLineups.length);
   lineups.value = newLineups.map(
     lineup => {
@@ -85,7 +89,7 @@ const exportLineups = () =>{
           @gotoUploadPlayerData="gotoUploadPlayerData" 
           @exportLineups="exportLineups"
           />
-        <GeneratedLineups :lineups="lineups" />
+        <GeneratedLineups :lineups="lineups" :loading="loading"/>
       </Tab>
     </Tabs>
   </div>

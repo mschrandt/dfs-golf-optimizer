@@ -2,7 +2,7 @@ import GLPK from "glpk.js";
 import seedrandom from "seedrandom";
 seedrandom("hello." , { global: true });
 
-const MAX_ITER = 1000;
+const MAX_ITER = 10000;
 
 
 
@@ -159,10 +159,21 @@ async function generateSolutions(numLineups, playerData, minUniqueness, maxExpos
   var iter = 0;
 
   while (solutions.length < numLineups && iter < MAX_ITER) {
-    const overexposedPlayers = calcOverexposure(solutions, numLineups, maxExposure, playerData);
     iter++;
+
+    const overexposedPlayers = calcOverexposure(solutions, numLineups, maxExposure, playerData);
+    const underexposedPlayers = calcUnderexposure(solutions, numLineups, playerData);
+    var nextLockedPlayers = [...lockedPlayers]
+    if(underexposedPlayers.length > 0)
+    {
+      var minPlayersToForce = Math.ceil(underexposedPlayers.length/(numLineups - solutions.length));
+      var maxPlayersToForce = Math.max(5, underexposedPlayers.length);
+      var numPlayersToForce = Math.random() * (maxPlayersToForce - minPlayersToForce) + minPlayersToForce;
+      nextLockedPlayers = nextLockedPlayers.concat(underexposedPlayers.slice(0, numPlayersToForce));
+    }
+
     const nextExcludeLists = combinations(lastLineup, minUniqueness).filter((excludeList) => {
-      for (var lockedPlayer of lockedPlayers) {
+      for (var lockedPlayer of nextLockedPlayers) {
         if (excludeList.includes(lockedPlayer)) return false;
       }
       return true;
@@ -176,7 +187,7 @@ async function generateSolutions(numLineups, playerData, minUniqueness, maxExpos
       buildPointVars(filteredPlayers),
       buildCostVars(filteredPlayers),
       buildTotalPlayers(filteredPlayers),
-      lockedPlayers,
+      nextLockedPlayers,
       filteredPlayers
     ).then((res) => {
       if (res.result.status === glpk.GLP_OPT) {
@@ -207,6 +218,22 @@ const calcOverexposure = (solutions, numLineups, maxExposure, playerData) => {
   return Object.entries(calcExposure(solutions, numLineups))
     .filter(([player, exposure]) => exposure > maxExposure || exposure > parseFloat(playerData.find((p) => p.ID === player).MaxExposure))
     .map(([player, count]) => player);
+}
+
+const calcUnderexposure = (solutions, numLineups, playerData) => {
+  var exposureDict = calcExposure(solutions, numLineups);
+  var exposureMap = playerData.map((player) => 
+    [player, 
+    {
+      exposure: exposureDict[player.ID] || 0, 
+      minExposure: player.MinExposure,
+      exposureDelta: player.MinExposure - (exposureDict[player.ID] || 0)
+    }]);
+  
+  var underExposedPlayers = exposureMap.filter(([player, exposureDict]) => exposureDict.exposure < exposureDict.minExposure);
+  return underExposedPlayers
+    .sort((a, b) => a[1].exposureDelta - b[1].exposureDelta)
+    .map(([player, count]) => player.ID);
 }
 
 const calcExposure = (solutions, numLineups) => {

@@ -55,34 +55,29 @@
         </template>
 
         <template #item-MaxExposure="item">
-            <div style="display: flex; align-items: center;">
-                <label style="margin-right: 10px; width: 20px;"> {{ (item.MaxExposure * 100).toFixed(0) }}% </label>
-                <input
-                    type="range"
-                    min="0.05"
-                    max="1"
-                    step="0.05"
-                    v-model="item.MaxExposure"
-                    @input="updatePlayerData(item)"
-                    list="exposureSteplist"
-                />
-                <datalist id="exposureSteplist">
-                    <option>0.1</option>
-                    <option>0.2</option>
-                    <option>0.3</option>
-                    <option>0.4</option>
-                    <option>0.5</option>
-                    <option>0.6</option>
-                    <option>0.7</option>
-                    <option>0.8</option>
-                    <option>0.9</option>
-                    <option>1</option>
-                </datalist>
+            <div style="display: flex; align-items: center; min-width: 200px">
+                <label style="margin-left:10px; margin-right: 5px; min-width: 20px;"> {{ (item.MinExposure * 100).toFixed(0) }}% </label>
+
+                <div style="flex-grow: 1">
+                    <MultiRangeSlider
+                        baseClassName="multi-range-slider-bar-only"
+                        :min="0"
+                        :max="1"
+                        :step="0.05"
+                        :ruler="true"
+                        :label="true"
+                        :minValue="item.MinExposure"
+                        :maxValue="item.MaxExposure"
+                        :preventWheel="true"
+                        @input="updateExposure($event, item)"/>
+                </div>
+                
+                <label style="margin-left: 5px;  min-width: 20px;"> {{ (item.MaxExposure * 100).toFixed(0) }}% </label>
             </div>
         </template>
 
         <template #item-GeneratedExposure="item">
-            <div>
+            <div style="margin-left:10px">
                 {{  getExposure(item.ID) }}
             </div>
         </template>
@@ -95,6 +90,8 @@
 import { ref, watch, defineEmits } from 'vue';
 import EasyDataTable from 'vue3-easy-data-table';
 import 'vue3-easy-data-table/dist/style.css';
+import MultiRangeSlider from "multi-range-slider-vue";
+import "multi-range-slider-vue/MultiRangeSliderBarOnly.css";
 
 const props = defineProps({
     data: {
@@ -118,7 +115,7 @@ const headers = ref([
     { text: 'Lock Player', value: 'LockPlayer', sortable: true },
     { text: 'Eliminate Player', value: 'EliminatePlayer', sortable: true },
     { text: 'Boost Player', value: 'PlayerBoost' },
-    { text: 'Max Exposure', value: 'MaxExposure' },
+    { text: 'Exposure', value: 'MaxExposure' },
     { text: 'Generated Exposure', value: 'GeneratedExposure'},
 ]);
 
@@ -138,6 +135,7 @@ watch(() => props.data, (newData) => {
         EliminatePlayer: false,
         PlayerBoost: 0,
         MaxExposure: 0.8,
+        MinExposure: 0,
     }));
 
     emit('updatePlayerData', items.value);
@@ -148,9 +146,46 @@ const updatePlayerData = (item) => {
     items.value[playerIndex] = item;
     emit('updatePlayerData', items.value);
 };
+
+const updateExposure = (event, item) => {
+    item.MinExposure = event.minValue;
+    item.MaxExposure = event.maxValue;
+    updatePlayerData(item);
+};
   
 </script>
   
-<style scoped>
+<style >
+.multi-range-slider-bar-only{
+    box-shadow: none;
 
+    .bar-inner {
+        background-color: rgb(2 117 255);
+        box-shadow: none;
+        border: none;
+    }
+
+    .thumb {
+        align-content: center;
+
+    }
+
+    .thumb .caption * {
+        display: none;
+    }
+
+    .thumb::before {
+            background-color: rgb(2 117 255);
+            box-shadow: none;
+            border: none;
+            width: 15px;
+            height: 15px;
+        }
+    
+    .bar-right, .bar-left {
+        box-shadow: none;
+        border: 1px solid #b2b2b2;
+        background-color: #efefef;
+    }
+}
 </style>

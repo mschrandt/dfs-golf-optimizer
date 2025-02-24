@@ -7,6 +7,7 @@
             :fixed-header="true"
             :headers="columns"
             :items="lineups"
+            :loading="loading"
         >
             <template #item-Player1.name="item">
                 <div class="tooltip">
@@ -58,6 +59,10 @@ const props = defineProps({
         type: Array,
         required: true,
     },
+    loading: {
+        type: Boolean,
+        default: false,
+    }
 });
 
 const columns = ref([
