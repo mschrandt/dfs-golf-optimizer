@@ -7,6 +7,7 @@
             min="1"
             max="250"/>
         <br />
+        <label v-if="props.lastGenerated"> Lineups last generated at {{ props.lastGenerated }} </label>
         <br />
         <!--
         <label>Minimum unique players per lineup: {{ minUniqueness }} </label>
@@ -28,7 +29,7 @@
         
         <div style="display: flex; width: 100%;">
             <button class="action-button" @click="optimizeLineups">Optimize Lineups</button>
-            <button v-if="lineupsGenerated" class="action-button" @click="exportClicked">Export</button>
+            <button v-if="props.showExportButton" class="action-button" @click="exportClicked">Export</button>
         </div>
         
     </div>
@@ -47,6 +48,14 @@ const props = defineProps({
     playerData: {
         type: Array,
         default: []
+    },
+    showExportButton: {
+        type: Boolean,
+        default: false
+    },
+    lastGenerated: {
+        type: String,
+        default: ''
     }
 });
 

@@ -1,5 +1,5 @@
 <script setup>
-import { ref } from 'vue';
+import { ref, onMounted } from 'vue';
 import UploadPlayerData from './components/UploadPlayerData.vue'
 import PlayerDataTable from './components/PlayerDataTable.vue';
 import OptimizeLineupsButton from './components/OptimizeLineupsButton.vue';
@@ -13,9 +13,12 @@ const lineups = ref([]);
 const tabs = ref(null);
 const generatedExposures = ref({});
 const loading = ref(false);
+const lastGenerated = ref(null);
 
 const handleFileUploaded = (data) => {
   playerData.value = data;
+  lastGenerated.value = '';
+
 };
 
 const updatedCuratedPlayerData = (data) => {
@@ -25,7 +28,7 @@ const updatedCuratedPlayerData = (data) => {
 const updateLineups = (updateLineups) => {
   loading.value = updateLineups.loading;
   const newLineups = updateLineups.data;
-  
+  lastGenerated.value = new Date().toLocaleString();
   generatedExposures.value = calcExposure(newLineups, newLineups.length);
   lineups.value = newLineups.map(
     lineup => {
@@ -49,6 +52,8 @@ const updateLineups = (updateLineups) => {
       };
     }
   ).sort((a, b) => b.totalExpectedFantasyPoints - a.totalExpectedFantasyPoints);
+
+  saveLocalStorage();
 }
 
 const gotoUploadPlayerData = () => {
@@ -70,13 +75,51 @@ const exportLineups = () =>{
   link.click();
 }
 
+const saveLocalStorage = () => {
+  localStorage.setItem("playerData",  JSON.stringify(curatedPlayerData.value));
+  localStorage.setItem("lineups", JSON.stringify(lineups.value));
+  localStorage.setItem("generatedExposures", JSON.stringify(generatedExposures.value));
+  localStorage.setItem("lastGenerated", lastGenerated.value);
+}
+
+onMounted(() => {
+  try {
+    const savedPlayerData = localStorage.getItem("playerData");
+    const savedLineups = localStorage.getItem("lineups");
+    const savedGeneratedExposures = localStorage.getItem("generatedExposures");
+    const savedLastGenerated = localStorage.getItem("lastGenerated");
+
+    if (savedPlayerData) {
+      playerData.value = JSON.parse(savedPlayerData);
+    }
+
+    if (savedLineups) {
+      lineups.value = JSON.parse(savedLineups);
+    }
+
+    if (savedGeneratedExposures){
+      generatedExposures.value = JSON.parse(savedGeneratedExposures);
+    }
+
+    if (savedLastGenerated){
+      lastGenerated.value = savedLastGenerated;
+    }
+  } catch (error) {
+    console.log(`Error loading saved data: ${error}`);
+  }
+}
+);
+
 </script>
 
 <template>
   <div>
     <Tabs ref="tabs">
       <Tab id='player-data-tab' name="Upload Player Data" :selected="true">
-        <UploadPlayerData class="upload-player-data" @file-uploaded="handleFileUploaded" />
+        <UploadPlayerData 
+          class="upload-player-data" 
+          :lastGenerated="lastGenerated"
+          @file-uploaded="handleFileUploaded" />
         <PlayerDataTable 
           :data="playerData" 
           :generatedExposures="generatedExposures"
@@ -84,7 +127,9 @@ const exportLineups = () =>{
       </Tab>
       <Tab id='generate-lineups-tab' name="Generate Lineups">
         <OptimizeLineupsButton 
-          :playerData="curatedPlayerData" 
+          :playerData="curatedPlayerData"
+          :showExportButton="lineups.length > 0" 
+          :lastGenerated="lastGenerated"
           @updateLineups="updateLineups"
           @gotoUploadPlayerData="gotoUploadPlayerData" 
           @exportLineups="exportLineups"

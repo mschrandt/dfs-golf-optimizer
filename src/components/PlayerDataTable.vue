@@ -130,12 +130,12 @@ const getExposure = (playerId) => {
 watch(() => props.data, (newData) => {
     items.value = newData.map(row => ({
         ...row,
-        ExpectedFantasyPoints: row.AvgPointsPerGame,
-        LockPlayer: false,
-        EliminatePlayer: false,
-        PlayerBoost: 0,
-        MaxExposure: 0.8,
-        MinExposure: 0,
+        ExpectedFantasyPoints: row.ExpectedFantasyPoints || row.AvgPointsPerGame,
+        LockPlayer: row.LockPlayer || false,
+        EliminatePlayer: row.EliminatePlayer || false,
+        PlayerBoost: row.PlayerBoost || 0,
+        MaxExposure: row.MaxExposure || 0.8,
+        MinExposure: row.MinExposure || 0,
     }));
 
     emit('updatePlayerData', items.value);
