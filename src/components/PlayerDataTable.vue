@@ -14,6 +14,7 @@
                     type="number"
                     v-model="item.ExpectedFantasyPoints"
                     @input="updatePlayerData(item)"
+                    style="width: 100%;"
                 />
         </template>
 
@@ -42,10 +43,11 @@
                     v-model="item.PlayerBoost"
                     @input="updatePlayerData(item)"
                     list="steplist"
+                    style="width: 100%;"
                 />
                 <datalist id="steplist">
                     <option value="-20" label="-20"></option>
-                    <option value="-10" l></option>
+                    <option value="-10" ></option>
                     <option value="0" label="0"></option>
                     <option value="10" ></option>
                     <option value="20" label="20"></option>
@@ -53,7 +55,7 @@
             </div>
         </template>
 
-        <template #item-MaxExposure="item">
+        <template #item-Exposure="item">
             <div style="display: flex; align-items: center; min-width: 200px">
                 <label style="margin-left:10px; margin-right: 5px; min-width: 20px;"> {{ (item.MinExposure * 100).toFixed(0) }}% </label>
 
@@ -75,6 +77,20 @@
             </div>
         </template>
 
+        <template #item-MinExposure="item">
+            <PercentInput
+                v-model="item.MinExposure"
+                @input="updatePlayerData(item)"
+            />
+        </template>
+
+        <template #item-MaxExposure="item">
+            <PercentInput
+                v-model="item.MaxExposure"
+                @input="updatePlayerData(item)"
+            />
+        </template>
+
         <template #item-GeneratedExposure="item">
             <div style="margin-left:10px">
                 {{  getExposure(item.ID) }}
@@ -91,7 +107,7 @@ import EasyDataTable from 'vue3-easy-data-table';
 import 'vue3-easy-data-table/dist/style.css';
 import MultiRangeSlider from "multi-range-slider-vue";
 import "multi-range-slider-vue/MultiRangeSliderBarOnly.css";
-
+import PercentInput from './columnFormats/PercentInput.vue';
 const props = defineProps({
     data: {
         type: Array,
@@ -106,15 +122,17 @@ const props = defineProps({
 const items = ref([]);
 
 const headers = ref([
-    { text: 'Name + ID', value: 'NameID', sortable: true },
+    { text: 'Name + ID', value: 'NameID', sortable: true, fixed: true },
     { text: 'Salary', value: 'Salary', sortable: true },
     { text: 'Game Info', value: 'GameInfo' },
     { text: 'Avg Points Per Game', value: 'AvgPointsPerGame', sortable: true },
     { text: 'Expected Fantasy Points', value: 'ExpectedFantasyPoints', sortable: true },
     { text: 'Lock Player', value: 'LockPlayer', sortable: true },
     { text: 'Eliminate Player', value: 'EliminatePlayer', sortable: true },
-    { text: 'Boost Player', value: 'PlayerBoost' },
-    { text: 'Exposure', value: 'MaxExposure' },
+    { text: 'Boost Player', value: 'PlayerBoost', width: 200},
+    //{ text: 'Exposure', value: 'Exposure', },
+    { text: 'Min Exposure', value: 'MinExposure' },
+    { text: 'Max Exposure', value: 'MaxExposure' },
     { text: 'Generated Exposure', value: 'GeneratedExposure'},
 ]);
 
