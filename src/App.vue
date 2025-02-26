@@ -137,6 +137,9 @@ onMounted(() => {
         <GeneratedLineups :lineups="lineups" :loading="loading"/>
       </Tab>
     </Tabs>
+    <footer>
+      <a href="https://www.flaticon.com/free-icons/golf" title="golf icons">Golf icons created by Smashicons - Flaticon</a>
+    </footer>
   </div>
 </template>
 
