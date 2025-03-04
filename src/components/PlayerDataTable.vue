@@ -151,7 +151,7 @@ watch(() => props.data, (newData) => {
         LockPlayer: row.LockPlayer || false,
         EliminatePlayer: row.EliminatePlayer || false,
         PlayerBoost: row.PlayerBoost || 0,
-        MaxExposure: row.MaxExposure || 0.8,
+        MaxExposure: row.MaxExposure || 0.2,
         MinExposure: row.MinExposure || 0,
     }));
 
