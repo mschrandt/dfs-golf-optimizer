@@ -9,7 +9,6 @@
         <br />
         <label v-if="props.lastGenerated"> Lineups last generated at {{ props.lastGenerated }} </label>
         <br />
-        <!--
         <label>Minimum unique players per lineup: {{ minUniqueness }} </label>
         <br />
         <input type="range" 
@@ -17,6 +16,7 @@
             max="5" 
             v-model="minUniqueness"/>
         <br />
+        <!--
         <label>Max exposure: {{ (maxExposure * 100).toFixed(0) }}% </label>
         <br />
         <input type="range" 
