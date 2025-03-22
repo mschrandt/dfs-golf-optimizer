@@ -7,6 +7,16 @@
         :fixed-header="true"
         :headers="headers"
         :items="items">
+        
+        <template #header-EliminatePlayer="{ headers }">
+            <div style="display: block; align-items: center;">
+                <span class="mr-2">Eliminate Player</span>
+                
+            </div>
+            <button type="button" @click="toggleEliminateAll(!isAllPlayersLocked)">
+                    {{ isAllPlayersLocked ? "Unselect All" : "Select All" }}
+                </button>
+        </template>
 
         <template #item-ExpectedFantasyPoints="item">
 
@@ -72,7 +82,6 @@
                         :preventWheel="true"
                         @input="updateExposure($event, item)"/>
                 </div>
-                
                 <label style="margin-left: 5px;  min-width: 20px;"> {{ (item.MaxExposure * 100).toFixed(0) }}% </label>
             </div>
         </template>
@@ -118,7 +127,7 @@ const props = defineProps({
         default: {}
     }
 });
-
+const isAllPlayersLocked = ref(false);
 const items = ref([]);
 
 const headers = ref([
@@ -128,7 +137,7 @@ const headers = ref([
     { text: 'Avg Points Per Game', value: 'AvgPointsPerGame', sortable: true },
     { text: 'Expected Fantasy Points', value: 'ExpectedFantasyPoints', sortable: true },
     { text: 'Lock Player', value: 'LockPlayer', sortable: true },
-    { text: 'Eliminate Player', value: 'EliminatePlayer', sortable: true },
+    { text: 'Eliminate Player', value: 'EliminatePlayer', width: 120 },
     { text: 'Boost Player', value: 'PlayerBoost', width: 200},
     //{ text: 'Exposure', value: 'Exposure', },
     { text: 'Min Exposure', value: 'MinExposure' },
@@ -169,7 +178,12 @@ const updateExposure = (event, item) => {
     item.MaxExposure = event.maxValue;
     updatePlayerData(item);
 };
-  
+
+const toggleEliminateAll = (changeSelectionTo) => {
+    isAllPlayersLocked.value = !isAllPlayersLocked.value;
+    items.value.forEach((item) => item.EliminatePlayer = changeSelectionTo);
+}
+
 </script>
   
 <style >
