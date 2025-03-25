@@ -117,12 +117,12 @@ function solve(
     lockedPlayers,
     unexpandedPlayerData
   );
-
   return glpk.solve(equation, options);
 }
 
 async function generateSolutions(numLineups, playerData, minUniqueness, maxExposure) {
 
+  playerData = playerData.filter(player => player.Name);
   const glpk = await GLPK();
   var solutions = [];
   
@@ -172,13 +172,9 @@ async function generateSolutions(numLineups, playerData, minUniqueness, maxExpos
       nextLockedPlayers = nextLockedPlayers.concat(underexposedPlayers.slice(0, numPlayersToForce));
     }
 
-    const nextExcludeLists = combinations(lastLineup, minUniqueness).filter((excludeList) => {
-      for (var lockedPlayer of nextLockedPlayers) {
-        if (excludeList.includes(lockedPlayer)) return false;
-      }
-      return true;
-    });
-    const nextExcludeList = nextExcludeLists[Math.round(Math.random() * nextExcludeLists.length)];
+
+    const nextExcludeList = [...buildExclusion(solutions, minUniqueness).difference(new Set(nextLockedPlayers))];
+
     filteredPlayers = playerData.filter(playerFilter(removedPlayers.concat(nextExcludeList).concat(overexposedPlayers)));
 
     await solve(
@@ -264,84 +260,19 @@ const salaryCheck = (lineup, playerData) => {
   return totalSalaryUse <= 50000;
 }
 
-function combinations(lineup, minUniqueness = 1) {
-  var combinationList = [];
-
-  if (minUniqueness <= 1) {
-    combinationList = combinationList.concat(lineup.map((v) => [v]));
+function buildExclusion(solutions, minUniqueness) {
+  const exclusionList = new Set();
+  for (var sln of solutions) {
+    let remainingPlayers = new Set(sln.lineup).difference(exclusionList);
+    while(sln.lineup.length - remainingPlayers.size < minUniqueness)
+    {
+      let player = getRandomElement([...remainingPlayers]);
+      exclusionList.add(player);
+      remainingPlayers = new Set(sln.lineup).difference(exclusionList)
+      
+    }
   }
-
-  if (minUniqueness <= 2) {
-    combinationList = combinationList.concat(
-      lineup.flatMap((v, i) => lineup.slice(i + 1).map((w) => [v, w]))
-    );
-  }
-
-  if (minUniqueness <= 3) {
-    combinationList = combinationList.concat(
-      lineup.flatMap((v, i) =>
-        lineup.slice(i + 1).flatMap((w, j) => lineup.slice(i + j + 2).map((x) => [v, w, x]))
-      )
-    );
-  }
-
-  if (minUniqueness <= 4) {
-    combinationList = combinationList.concat(
-      lineup.flatMap((v, i) =>
-        lineup
-          .slice(i + 1)
-          .flatMap((w, j) =>
-            lineup
-              .slice(i + j + 2)
-              .flatMap((x, k) => lineup.slice(i + j + k + 3).map((y) => [v, w, x, y]))
-          )
-      )
-    );
-  }
-
-  if (minUniqueness <= 5) {
-    combinationList = combinationList.concat(
-      lineup.flatMap((v, i) =>
-        lineup
-          .slice(i + 1)
-          .flatMap((w, j) =>
-            lineup
-              .slice(i + j + 2)
-              .flatMap((x, k) =>
-                lineup
-                  .slice(i + j + k + 3)
-                  .flatMap((y, l) => lineup.slice(i + j + k + l + 4).map((z) => [v, w, x, y, z]))
-              )
-          )
-      )
-    );
-  }
-
-  if (minUniqueness <= 6) {
-    combinationList = combinationList.concat(
-      lineup.flatMap((v, i) =>
-        lineup
-          .slice(i + 1)
-          .flatMap((w, j) =>
-            lineup
-              .slice(i + j + 2)
-              .flatMap((x, k) =>
-                lineup
-                  .slice(i + j + k + 3)
-                  .flatMap((y, l) =>
-                    lineup
-                      .slice(i + j + k + l + 4)
-                      .flatMap((z, m) =>
-                        lineup.slice(i + j + k + l + m + 5).map((a) => [v, w, x, y, z, a])
-                      )
-                  )
-              )
-          )
-      )
-    );
-  }
-
-  return combinationList;
+  return exclusionList;
 }
 
 function unique(array) {
@@ -357,6 +288,11 @@ function unique(array) {
     }
   }
   return uniqueSolutions;
+}
+
+function getRandomElement(array) {
+  const randomIndex = Math.floor(Math.random() * array.length);
+  return array[randomIndex];
 }
 
 export { generateSolutions, calcExposure };
