@@ -2,7 +2,7 @@ import GLPK from "glpk.js";
 import seedrandom from "seedrandom";
 seedrandom("hello." , { global: true });
 
-const MAX_ITER = 1000;
+const MAX_ITER = 10000;
 
 
 
