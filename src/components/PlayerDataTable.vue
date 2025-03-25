@@ -1,5 +1,32 @@
 <template>
     <div>
+        <Modal 
+            :show="showChangeAllMinExposuresModal" >
+            <template #header>
+                <h3>Change all min exposures</h3>
+            </template>
+            <template #body>
+                <ChangeAllExposures 
+                    :defaultValue="Math.min(...items.map(x=>x.MinExposure))"
+                    @cancel="showChangeAllMinExposuresModal = false"
+                    @ok="updateMinExposures($event)"/>
+            </template>
+        </Modal>
+
+        <Modal 
+            :show="showChangeAllMaxExposuresModal" >
+            <template #header>
+                <h3>Change all max exposures</h3>
+            </template>
+            <template #body>
+                <ChangeAllExposures 
+                    :defaultValue="Math.max(...items.map(x=>x.MaxExposure))"
+                    @cancel="showChangeAllMaxExposuresModal = false"
+                    @ok="updateMaxExposures($event)"/>
+            </template>
+        </Modal>
+
+
       <EasyDataTable
         :table-height=500
         :rows-per-page=200
@@ -11,11 +38,32 @@
         <template #header-EliminatePlayer="{ headers }">
             <div style="display: block; align-items: center;">
                 <span class="mr-2">Eliminate Player</span>
-                
-            </div>
-            <button type="button" @click="toggleEliminateAll(!isAllPlayersLocked)">
+                <button type="button" @click="toggleEliminateAll(!isAllPlayersLocked)">
                     {{ isAllPlayersLocked ? "Unselect All" : "Select All" }}
                 </button>
+            </div>
+            
+        </template>
+
+        <template #header-MinExposure="{ headers }">
+            <div style="display: block; align-items: center;">
+                <span class="mr-2">Min Exposure</span>
+                
+                <button type="button" @click="showChangeAllMinExposuresModal = true">
+                        Update All
+                </button>
+            </div>
+        </template>
+
+
+        <template #header-MaxExposure="{ headers }">
+            <div style="display: block; align-items: center;">
+                <span class="mr-2">Max Exposure</span>
+                
+                <button type="button" @click="showChangeAllMaxExposuresModal = true">
+                        Update All
+                </button>
+            </div>
         </template>
 
         <template #item-ExpectedFantasyPoints="item">
@@ -117,6 +165,8 @@ import 'vue3-easy-data-table/dist/style.css';
 import MultiRangeSlider from "multi-range-slider-vue";
 import "multi-range-slider-vue/MultiRangeSliderBarOnly.css";
 import PercentInput from './columnFormats/PercentInput.vue';
+import Modal from './modals/Modal.vue';
+import ChangeAllExposures from './modals/ChangeAllExposures.vue';
 const props = defineProps({
     data: {
         type: Array,
@@ -129,7 +179,8 @@ const props = defineProps({
 });
 const isAllPlayersLocked = ref(false);
 const items = ref([]);
-
+const showChangeAllMinExposuresModal=ref(false);
+const showChangeAllMaxExposuresModal=ref(false);
 const headers = ref([
     { text: 'Name + ID', value: 'NameID', sortable: true, fixed: true },
     { text: 'Salary', value: 'Salary', sortable: true },
@@ -179,9 +230,35 @@ const updateExposure = (event, item) => {
     updatePlayerData(item);
 };
 
+const updateMinExposures = ( { exposure, updateAllValues } ) => {
+    console.log(exposure, updateAllValues)
+    items.value.forEach((item) => 
+        {
+            if(updateAllValues === true || item.MinExposure < exposure){
+                item.MinExposure = exposure;
+                updatePlayerData(item);
+            }
+        });
+    showChangeAllMinExposuresModal.value = false;
+}
+
+const updateMaxExposures = ({ exposure, updateAllValues } ) => {
+    items.value.forEach((item) => 
+        {
+            if(updateAllValues === true || item.MinExposure > exposure){
+                item.MaxExposure = exposure;
+                updatePlayerData(item);
+            }
+        });
+
+        showChangeAllMaxExposuresModal.value = false;
+}
+
 const toggleEliminateAll = (changeSelectionTo) => {
     isAllPlayersLocked.value = !isAllPlayersLocked.value;
     items.value.forEach((item) => item.EliminatePlayer = changeSelectionTo);
+
+    emit('updatePlayerData', items.value);
 }
 
 </script>
@@ -231,5 +308,9 @@ datalist option {
     flex: 1;
     position: relative;
 
+}
+
+.header {
+    display:block;
 }
 </style>
